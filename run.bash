@@ -2,8 +2,8 @@
 # bash script to automate larp
 # Made by papi
 
-BEGIN_IP=192.168.1.1
-END_IP=192.168.1.255
+BEGIN_IP=172.20.10.1
+END_IP=172.20.10.255
 GATEWAY=192.168.1.1
 
 exec 3>&2
