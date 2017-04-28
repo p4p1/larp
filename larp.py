@@ -13,6 +13,10 @@ import multiprocessing
 import subprocess
 import getopt
 
+import gi
+gi.require_version('Gtk', '3.0')
+from gi.repository import Gtk
+
 from scapy.all import *
 from termcolor import colored
 
@@ -51,6 +55,50 @@ def get_mac(ip_address):
     responses, unanswered = srp(Ether(dst="ff:ff:ff:ff:ff:ff")/ARP(pdst=ip_address), timeout=2, retry=10)
     for s,r in responses:
         return r[Ether].src
+#---GTK 3 Course -----
+
+import gi
+import time
+gi.require_version('Gtk', '3.0')
+from gi.repository import Gtk
+
+class ImgDisplay(Gtk.Window):
+
+    def __init__(self):
+        Gtk.Window.__init__(self, title="Image Display")
+        self.set_border_width(3)
+        self.connect("delete-event", Gtk.main_quit)
+
+        self.box = Gtk.Box(spacing=6)
+
+        self.spinner = Gtk.Spinner()
+        self.spinner_on = True
+
+        self.table = Gtk.Table(3, 2, True)
+        self.table.attach(self.box, 0, 2, 0, 2)
+        self.table.attach(self.spinner, 0, 2, 0, 1)
+
+        self.add(self.table)
+        self.spinner.start()
+        self.show_all()
+
+    def update_image(self, data=None):
+
+        image = Gtk.Image()
+        image.set_from_file(data)
+        self.box.add(image)
+        self.box.show_all()
+
+    def triger_spinner(self, widget, spin_status=False):
+
+        if spin_status and self.spinner_on == False:
+            self.spinner.start()
+            self.spinner_on = True
+
+        if spin_status == False and self.spinner_on:
+            self.spinner.stop()
+            self.spinner_on = False
+
 
 #---------------------
 
@@ -62,6 +110,7 @@ class larp():
     def __init__(self, gateway_ip, interface, file_name, v=0):
         # setup all of the variables and the configurations
         print colored("[*] Starting up...", "green")
+        self.win = ImgDisplay()
         conf.iface = interface
         conf.verb = v
         self.interface = interface
@@ -123,7 +172,8 @@ class larp():
             self.thread_array.append(multiprocessing.Process(target=poison,\
             args=(self.g_ip, self.g_mac, ip, self.t_mac[ip])))
             self.thread_array[t_id].start()
-            id_map[t_id] = [ip, self.t_mac[ip], None ]
+            id_map[t_id] = [ip, self.t_mac[ip], None , None]
+            # id_mapper  ip |  mac addr |  if sniffing|if in gtk
             t_id += 1
         print colored("[*] Main menu:\n[*] Number of client's: %d" % t_id, "green")
         while len(id_map):
@@ -154,6 +204,9 @@ class larp():
                     print colored("[^] running nmap on %d => %s" % (i, id_map[i][0]), "blue")
                     print colored("[*] Output:", "green")
                     os.system("nmap %s" %id_map[i][0])
+                elif "gtk" in buf or "g" == buf.split(' ')[0]:
+                    i = int(buf.split(' ')[1])
+                    print colored("[^] Opening Gtk image viewer for %d => %s" % (i, id_map[i][0]), "blue")
                 else:
                     self.thread_array[int(buf)].terminate()
                     restore_target(self.g_ip, self.g_mac, id_map[int(buf)][0], id_map[int(buf)][1])
@@ -163,7 +216,7 @@ class larp():
                         print colored("[^] Stoped sniffer for %s" % id_map[int(buf)][0], "blue")
                     del id_map[int(buf)]
             except:
-                print colored("[!] Available commands: all - list - sniff", "red")
+                print colored("[!] Available commands: all - list - sniff - nmap", "red")
         for thread in self.thread_array:
             thread.join()
 
