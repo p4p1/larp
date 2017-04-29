@@ -114,6 +114,28 @@ class ImgDisplay(Gtk.Window):
             self.spinner.stop()
             self.spinner_on = False
 
+    def link_extract(self, packet,http_packet):
+
+        ret = ""
+        if http_packet.find('GET') != -1 and \
+        (http_packet.find('.jpg') != -1 or \
+        http_packet.find(".png") != -1 or \
+        http_packet.find('.jpeg') != -1 or \
+        http_packet.find('.gif') != -1):
+            ret += "\n".join(packet.sprintf("{Raw:%Raw.load%}\n").split(r"\r\n"))
+            return "http://" + str(str(packet[IP].dst) + ret[ret.find("GET")+4:ret.find("HTTP")])
+        else:
+            return None
+
+    def http_header(self, packet):
+
+        sr = ""
+        http_packet=str(packet)
+        sr = self.link_extract(packet, http_packet)
+        if sr is not None:
+            urllib.urlretrieve(sr, "/tmp/" + sr[sr.rfind('/')+1:])
+            #self.update_image(sr[sr.rfind('/')+1:])
+
 #---------------------
 
 class larp():
@@ -179,7 +201,7 @@ class larp():
 
     def img_sniff(self, ip="0.0.0.0"):
         win = ImgDisplay()
-        Gtk.main()
+        sniff(iface=self.interface, prn=win.http_header, filter="tcp port 80")
 
     def main(self):
         t_id = 0    # thread id
