@@ -7,7 +7,7 @@
 # provide it an argument with the gateway ip
 # it will arp the entire network to your' machine
 # use threading to arp individual clients
-# and setup a shell so that when you send an id it stops certain arps
+# and setup a shell so that when you send an id it stops certain arps.
 import sys
 import multiprocessing
 import subprocess
