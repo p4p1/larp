@@ -108,7 +108,7 @@ class larp():
         id_no = int(buf)
         return id_no, ip, mac
 
-    def process_cmd(self, buf):
+    def process_cmd(self, t_id, buf):
         if "all" in buf or "a" == buf:
 
             for i in xrange(0, t_id):
@@ -179,7 +179,7 @@ class larp():
         while len(self.id_map):
             buf = raw_input('#>')               # display the prompt
 
-            self.process_cmd(buf)               # process the command
+            self.process_cmd(t_id, buf)               # process the command
 
         for thread in self.thread_array:
             thread.join()
