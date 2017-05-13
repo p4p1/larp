@@ -102,7 +102,7 @@ class larp():
         print >> sys.stderr, colored(msg, 'red')
         sys.exit(-1)
 
-    def get_ip_mac(buf):
+    def get_ip_mac(self, buf):
         # id_map[int(buf)][0], id_map[int(buf)][1]
         ip = self.id_map[int(buf)][0]
         mac = self.id_map[int(buf)][1]
