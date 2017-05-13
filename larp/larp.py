@@ -13,6 +13,7 @@ import multiprocessing
 import subprocess
 
 import arp
+import sniffer
 
 from scapy.all import *
 from termcolor import colored
@@ -127,7 +128,7 @@ class larp():
 
         elif "nmap" in buf or "n" == buf.split(' ')[0]:
 
-            if buf.spilt(' ')[0] == 'n':
+            if buf.split(' ')[0] == 'n':
                 i, ip, mac = self.get_ip_mac(buf.split(' ')[1])
                 print colored("[^] running nmap on %d => %s" % (i, ip), "blue")
                 print colored("[*] Output:", "green")
@@ -139,6 +140,15 @@ class larp():
                    % (int(buffer_array[l-1]), self.id_map[int(buffer_array[l-1])][0]), "blue")
                 print colored("[*] Output:", "green")
                 os.system("%s %s" % (str(buffer_array[:l-2]), self.id_map[int(buffer_array[l-1])][0]))
+
+        elif "sniff" in buf or "s" == buf.split(' ')[0]:
+
+            if buf.split(' ')[0] == 's':
+                i, ip, mac = self.get_ip_mac(buf.split(' ')[1])
+                print colored("[^] running sniffer on %d => %s" % (i, ip), "blue")
+                snif = sniffer.sniffer(self.interface, target=ip)
+                self.id_map[i][2] = subprocess.Process(target=snif.sniff, args=())
+                self.id_map[i][2].start()
 
         elif buf.isdigit():
 
@@ -155,6 +165,7 @@ class larp():
                 del id_map[i]
             else:
                 print colored("[!] are you trying to break this?!", "red")
+
         else:
             print colored("[!] Available commands: all - list - sniff - nmap - img", "red")
 
