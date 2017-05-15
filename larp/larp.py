@@ -74,6 +74,7 @@ class larp():
         self.t_mac = dict()                             # map ip -> mac addr
         self.thread_array = []                          # thread array
         self.id_map = dict()
+        self.sniffer_proc_id = []                       # variable to control the sniffers
 
         try:                                            # get all of the ip addr's
             with open(file_name, "r") as f:             # open up the target ip file
@@ -121,10 +122,15 @@ class larp():
                     print colored("[^] Stoped sniffer for %s" % self.id_map[i][0], "blue")
                 del self.id_map[i]
 
+            for i in xrange(0, len(self.sniffer_proc_id)):
+                self.sniffer_proc_id[i].terminate()
+                self.sniffer_proc_id[i].join()
+
         elif "list" in buf or "l" == buf:
 
             for i in xrange(0, t_id):
                 print colored("[^] %d => %s / %s" % (i, self.id_map[i][0], self.id_map[i][1]), "blue")
+            print colored("[^] no of sniffers: %d" % (len(self.sniffer_proc_id)), "blue")
 
         elif "nmap" in buf or "n" == buf.split(' ')[0]:
 
@@ -143,12 +149,20 @@ class larp():
 
         elif "sniff" in buf or "s" == buf.split(' ')[0]:
 
+            snif = sniffer.sniffer(self.interface)
             if buf.split(' ')[0] == 's':
-                i, ip, mac = self.get_ip_mac(buf.split(' ')[1])
-                print colored("[^] running sniffer on %d => %s" % (i, ip), "blue")
-                snif = sniffer.sniffer(self.interface, target=ip)
-                self.id_map[i][2] = subprocess.Process(target=snif.sniff, args=())
-                self.id_map[i][2].start()
+                print colored("[^] running sniffer for images", "blue")
+                self.sniffer_proc_id.append(multiprocessing.Process(target=snif.img_sniff,\
+                        args=()))
+                self.sniffer_proc_id[len(self.sniffer_proc_id)-1].start()
+            else:
+                buf_array = buf.split(' ')
+                filter_str = ' '.join(buf_array[1:])
+                print colored("[^] running sniffer with rule %s" % \
+                        (filter_str), "blue")
+                self.sniffer_proc_id.append(multiprocessing.Process(target=snif.sniff,\
+                        args=(filter_str,)))
+                self.sniffer_proc_id[len(self.sniffer_proc_id)-1].start()
 
         elif buf.isdigit():
 
@@ -168,7 +182,6 @@ class larp():
 
         else:
             print colored("[!] Available commands: all - list - sniff - nmap - img", "red")
-
 
     def main(self):
         ''' main function '''
