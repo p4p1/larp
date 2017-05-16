@@ -1,5 +1,7 @@
 import os, sys
 import urllib
+import time
+import arp
 
 from scapy.all import *
 from termcolor import colored
@@ -33,17 +35,22 @@ class sniffer():
           http_packet.find('.jpeg') != -1 or http_packet.find('.gif') != -1):
             ret = "\n".join(pack.sprintf("{Raw:%Raw.load%}\n").split(r"\r\n"))
             url = "http://" + str(str(pack[IP].dst) + ret[ret.find("GET")+4:ret.find("HTTP")])
+            f_name = self.img_path + url[url.rfind('/')+1:len(url)-1]
             if self.dbg:
-                print url
-            urllib.urlretrieve(url, self.img_path + url[url.rfind('/')+1:])
+                print url + '\n' + f_name
+            #urllib.urlretrieve(url, f_name)
 
     def img_sniff(self):
         ''' image sniffer function '''
+        ip = arp.get_ip(self.interface)
         if not os.path.exists(self.img_path):
             os.makedirs(self.img_path)
+        if self.dbg:
+            print 'sniffing...'
         while True:
-            sniff(iface=self.interface, prn=self.img_extractor, filter="tcp port 80")
+            sniff(iface=self.interface, prn=self.img_extractor, filter="tcp port 80 && ! src %s && ! dst %s" %(ip, ip))
+            time.sleep(1)
 
 if __name__ == "__main__":
-        s = sniffer('en1', dbg=True)
+        s = sniffer('en1', dbg=True, path="/Users/k0oo/Desktop/")
         s.img_sniff()

@@ -3,6 +3,7 @@ import subprocess
 
 from scapy.all import *
 from termcolor import colored
+import netifaces as ni
 
 # restore the arped targets
 def restore_target(gateway_ip, gateway_mac, target_ip, target_mac):
@@ -43,3 +44,5 @@ def ip_forward():
             print colored("[!] modifing net.inet.ip.forwarding to 1", "red")
             subprocess.check_output(["sysctl", "-w", "net.inet.ip.forwarding=1"])
 
+def get_ip(interface):
+        return ni.ifaddresses(interface)[2][0]['addr']
