@@ -11,3 +11,4 @@ as second argument after that just let it run.
 # TODO:
 1. On the fly http / tcp / packet analysis
 2. graphical view for .jpg files
+3. TLS / SSL implementation

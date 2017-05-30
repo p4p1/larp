@@ -8,6 +8,7 @@ from termcolor import colored
 interface = None
 gateway = None
 target_file = None
+auto_mode = False
 
 if os.geteuid() != 0:
     print >> sys.stderr, colored("[!] RUN THE PROGRAM AS ROOT!", "red")
@@ -27,7 +28,7 @@ for o, a in optlist:
         usage()
         sys.exit(1)
     elif o in ("-a", "--auto"):
-        pass #automode
+        auto_mode = True
     elif o in ("-i", "--interface"):
         interface = a
     elif o in ("-g", "--gateway"):
@@ -39,12 +40,18 @@ for o, a in optlist:
 
 #-----------------------------------------
 
-if not interface:
+if auto_mode:
     interface = "en1"
-if not gateway:
-    gateway = "192.168.1.1"
-if not target_file:
+    gateway = "192.168.1.1."
     target_file = "/tmp/t_ip.txt"
+    os.system("fping -g -a 192.168.1.1 192.168.1.255 > /tmp/t_ip.txt")
+else:
+    if not interface:
+        interface = "en1"
+    if not gateway:
+        gateway = "192.168.1.1"
+    if not target_file:
+        target_file = "/tmp/t_ip.txt"
 
 #----------------------------------------
 

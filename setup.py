@@ -1,3 +1,7 @@
+# create an auto rule
+# to load up the auto variables inside of the main code so that larp can be
+# auto configured without any change of the actual code by the intended user
+
 from setuptools import setup
 
 setup( name='larp',
