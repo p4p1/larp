@@ -50,7 +50,7 @@ class larp():
             arp.ip_forward()
             print colored("[*] Retreiving mac addrs", "green")
             print "IP addr -> ",
-            print temp+ip
+            print temp_ip
             for ip in temp_ip:
                 temp = arp.get_mac(ip)
                 if temp == None:
