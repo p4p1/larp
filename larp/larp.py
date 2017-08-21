@@ -23,13 +23,14 @@ class larp():
         larp is software made by papi for arp poisonning
     '''
 
-    def __init__(self, gateway_ip, interface, file_name, v=0):
+    def __init__(self, gateway_ip, interface, file_name, v=0, verbose):
         # setup all of the variables and the configurations
         print colored("[*] Starting up...", "green")    # startup_msg
 
         # this line had to be commented it threw up interface errors on my system
         #conf.iface = interface                          # interface var
         conf.verb = v                                   # configure verbose mode
+        self.verbose = verbose
         self.interface = interface                      # save interface
         self.g_ip = gateway_ip                          # setup gateway_ip
         self.g_mac = arp.get_mac(self.g_ip)                 # get the gateway mac
@@ -39,6 +40,8 @@ class larp():
         self.id_map = dict()
         self.sniffer_proc_id = []                       # variable to control the sniffers
 
+        if self.verbose:
+            print "Openning file"
         try:                                            # get all of the ip addr's
             with open(file_name, "r") as f:             # open up the target ip file
                 temp_ip = f.readlines()                 # get teh ip from the file
@@ -46,6 +49,8 @@ class larp():
                 f.close()                               # remove EOL and close file
             arp.ip_forward()
             print colored("[*] Retreiving mac addrs", "green")
+            print "IP addr -> ",
+            print temp+ip
             for ip in temp_ip:
                 temp = arp.get_mac(ip)
                 if temp == None:
@@ -161,6 +166,7 @@ class larp():
             # id_mapper  ip |  mac addr |  if sniffing|if in img harvest
             t_id += 1
 
+        print self.id_map
         print colored("[*] Main menu:\n[*] Number of client's: %d" % t_id, "green")
 
         while len(self.id_map):

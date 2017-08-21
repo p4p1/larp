@@ -50,4 +50,4 @@ if verbose:
 
 #----------------------------------------
 
-larp.larp(cfg_data['GATEWAY'], cfg_data['INTERFACE'], cfg_data['IP_PATH']).main()
+larp.larp(cfg_data['GATEWAY'], cfg_data['INTERFACE'], cfg_data['IP_PATH'], verbose=verbose).main()
