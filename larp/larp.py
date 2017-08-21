@@ -23,7 +23,7 @@ class larp():
         larp is software made by papi for arp poisonning
     '''
 
-    def __init__(self, gateway_ip, interface, file_name, v=0, verbose):
+    def __init__(self, gateway_ip, interface, file_name, verbose, v=0):
         # setup all of the variables and the configurations
         print colored("[*] Starting up...", "green")    # startup_msg
 

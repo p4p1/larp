@@ -46,6 +46,7 @@ while cfg_data == None:
             sys.exit(-1)
 
 if verbose:
+    print "config -> ",
     print cfg_data
 
 #----------------------------------------
