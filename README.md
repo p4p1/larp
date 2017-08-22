@@ -12,3 +12,12 @@ as second argument after that just let it run.
 1. On the fly http / tcp / packet analysis
 2. graphical view for .jpg files
 3. TLS / SSL implementation
+
+# License
+GNU GENERAL PUBLIC LICENSE
+Version 2, June 1991
+
+Copyright (C) 1989, 1991 Free Software Foundation, Inc.
+51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
+
