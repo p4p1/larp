@@ -174,7 +174,7 @@ class larp():
         print colored("[*] Main menu:\n[*] Number of client's: %d" % t_id, "green")
 
         while len(self.id_map):
-            buf = raw_input('#>')               # display the prompt
+            buf = raw_input('#> ')               # display the prompt
 
             self.process_cmd(t_id, buf)               # process the command
 
