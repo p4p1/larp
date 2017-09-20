@@ -132,6 +132,10 @@ class larp():
                         args=(filter_str,)))
                 self.sniffer_proc_id[len(self.sniffer_proc_id)-1].start()
 
+        elif "wireshark" in buf or "w" == buf.split(' ')[0]:
+
+            os.system("wireshark &")
+
         elif buf.isdigit():
 
             if len(self.thread_array) > int(buf):
