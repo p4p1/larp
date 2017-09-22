@@ -3,9 +3,10 @@
 # auto configured without any change of the actual code by the intended user
 
 from setuptools import setup
+import larp
 
 setup( name='larp',
-        version='0.2',
+        version=larp.__version__,
         description='leo arp spoofer',
         url='http://github.com/p4p1/larp',
         author='p4p1',
