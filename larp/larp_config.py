@@ -15,15 +15,7 @@ class configure():
             self.error("configuration, does not exists")
 
     def error(self, msg="", level=0):
-        if self.v:
-            print msg
-        with open("/tmp/larp.log", "a+") as fp:
-            if level == 0:
-                fp.write(strftime("[ERROR][%Y-%m-%d %H:%M:%S]: ", gmtime())+msg)
-            elif level == 1:
-                fp.write(strftime("[WARNING][%Y-%m-%d %H:%M:%S]: ", gmtime())+msg)
-            else:
-                fp.write(strftime("[%Y-%m-%d %H:%M:%S]: ", gmtime())+msg)
+        print colored("[!!] "+msg, "red")
 
     def data_isok(self):
         try:

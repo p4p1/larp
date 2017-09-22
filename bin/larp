@@ -10,6 +10,7 @@ from termcolor import colored
 
 cfg_data = None
 verbose = False
+silent = False
 
 if os.geteuid() != 0:
     print >> sys.stderr, colored("[!] RUN THE PROGRAM AS ROOT!", "red")
@@ -17,8 +18,8 @@ if os.geteuid() != 0:
     sys.exit(-1)
 
 try:
-    optlist, args = getopt.getopt(sys.argv[1:], "hvc",\
-        ["help", "verbose", "confiure"])
+    optlist, args = getopt.getopt(sys.argv[1:], "hvc:s",\
+        ["help", "verbose", "confiure", "silent"])
 except:
     print >> sys.stderr, colored("[!] YOU DID NOT PROVIDE THE GOOD NUMBER OF ARGUMENTS:\n%s" % str(getopt.GetoptError), 'red')
     usage.usage()
@@ -32,6 +33,8 @@ for o, a in optlist:
         verbose = True
     if o in ("-c", "--configure"):
         config.configure(verbose).gen_config_wiz()
+    if o in ("-s", "--silent"):
+        silent = True
     else:
         assert False, "Umhandled Option"
 
@@ -47,10 +50,9 @@ while cfg_data == None:
         else:
             sys.exit(-1)
 
-if verbose:
-    print "config -> ",
-    print cfg_data
+print "config -> ",
+print cfg_data
 
 #----------------------------------------
 
-larp.larp(cfg_data['GATEWAY'], cfg_data['INTERFACE'], cfg_data['IP_PATH'], verbose=verbose).main()
+larp.larp(cfg_data['GATEWAY'], cfg_data['INTERFACE'], cfg_data['IP_PATH'], silent=silent).main()

