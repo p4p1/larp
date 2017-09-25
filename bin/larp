@@ -1,6 +1,5 @@
 #!/usr/bin/env python2.7
 import os, sys
-import getopt
 
 import larp
 import larp.larp_config as config
@@ -9,34 +8,31 @@ import larp.larp_usage as usage
 from termcolor import colored
 
 cfg_data = None
-verbose = False
 silent = False
+verbose = False
+arg = None
+
+try:
+    arg = sys.argv[1]
+    if arg == "-v":
+        verbose = True
+        arg = sys.argv[2]
+except:
+    pass
+
+#-----------------------------------------
+
+if arg == "-cfg" or arg == "-c":
+    config.configure(verbose).gen_config_wiz()
+if arg == "-s" or arg == "--silent":
+    silent = True
+
+#-----------------------------------------
 
 if os.geteuid() != 0:
     print >> sys.stderr, colored("[!] RUN THE PROGRAM AS ROOT!", "red")
     larp.usage()
     sys.exit(-1)
-
-try:
-    optlist, args = getopt.getopt(sys.argv[1:], "hvc:s",\
-        ["help", "verbose", "confiure", "silent"])
-except:
-    print >> sys.stderr, colored("[!] YOU DID NOT PROVIDE THE GOOD NUMBER OF ARGUMENTS:\n%s" % str(getopt.GetoptError), 'red')
-    usage.usage()
-    sys.exit(-1)
-
-for o, a in optlist:
-    if o in ("-h", "--help"):
-        usage()
-        sys.exit(1)
-    if o in ("-v", "--verbose"):
-        verbose = True
-    if o in ("-c", "--configure"):
-        config.configure(verbose).gen_config_wiz()
-    if o in ("-s", "--silent"):
-        silent = True
-    else:
-        assert False, "Umhandled Option"
 
 #-----------------------------------------
 
@@ -50,9 +46,10 @@ while cfg_data == None:
         else:
             sys.exit(-1)
 
-print "config -> ",
-print cfg_data
+if verbose:
+    print "config -> ",
+    print cfg_data
 
 #----------------------------------------
 
-larp.larp(cfg_data['GATEWAY'], cfg_data['INTERFACE'], cfg_data['IP_PATH'], silent=silent).main()
+larp.larp(cfg=cfg_data, silent=silent).main()

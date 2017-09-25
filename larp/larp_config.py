@@ -39,6 +39,8 @@ class configure():
                     self.cfg['INTERFACE'] = line.split('=')[1].strip()
                 elif "IP_PATH" in line:
                     self.cfg['IP_PATH'] = line.split('=')[1].strip()
+                elif "RATE" in line:
+                    self.cfg['RATE'] = line.split('=')[1].strip()
             self.data_isok()
             fp.close()
         return self.cfg
@@ -50,14 +52,16 @@ class configure():
         interface = raw_input(">>")
         print colored("[*] Enter the path of the list of ip's:", "blue")
         ip_path = raw_input(">>")
+        print colored("[*] Enter the rate per second of arp packets:", "blue")
+        rate = raw_input(">>")
         print colored("[*] Thank you for using gen_config_wizard!", "green")
-        self.gen_config(gateway, interface, ip_path)
+        self.gen_config(gateway, interface, ip_path, rate)
 
-    def gen_config(self, gateway, interface, ip_path):
+    def gen_config(self, gateway, interface, ip_path, rate):
         if not os.path.exists(os.environ['HOME']+"/.config/larp"):
             os.makedirs(os.environ['HOME']+"/.config/larp")
         with open(os.environ['HOME']+"/.config/larp/config", "w") as fp:
-            cfg_str = "# config file for larp,\n# <3\n\nGATEWAY=%s\nINTERFACE=%s\nIP_PATH=%s\n" % (gateway, interface, ip_path)
+            cfg_str = "# config file for larp,\n# <3\n\nGATEWAY=%s\nINTERFACE=%s\nIP_PATH=%s\nRATE=%s\n" % (gateway, interface, ip_path, rate)
             fp.write(cfg_str)
             fp.close()
 

