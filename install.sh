@@ -1,3 +1,3 @@
 #!/bin/sh
 
-pip install -U .
+pip2 install -U .
