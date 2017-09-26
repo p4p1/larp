@@ -98,7 +98,8 @@ class larp():
         elif "list" in buf or "l" == buf:
             for i in xrange(0, t_id):
                 print colored("[^] %d => %s / %s" % (i, self.id_map[i][0], self.id_map[i][1]), "blue")
-            print colored("[^] no of sniffers: %d" % (len(self.sniffer_proc_id)), "blue")
+            print colored("[^] ip list -> %r" % self.t_ip, "blue")
+            print colored("[^] ip map -> %r" % self.id_map, "blue")
 
         elif "nmap" in buf or "n" == buf.split(' ')[0]:
             if buf.split(' ')[0] == 'n':
@@ -107,12 +108,8 @@ class larp():
                 print colored("[*] Output:", "green")
                 os.system("nmap %s" % ip)
             else:
-                buffer_array = buf.split(' ')
-                l = len(buffer_array)
-                print colored("[^] running nmap on %d => %s"\
-                   % (int(buffer_array[l-1]), self.id_map[int(buffer_array[l-1])][0]), "blue")
                 print colored("[*] Output:", "green")
-                os.system("%s %s" % (str(buffer_array[:l-2]), self.id_map[int(buffer_array[l-1])][0]))
+                os.system("%s" % buf)
 
         elif "wireshark" in buf or "w" == buf.split(' ')[0]:
             os.system("wireshark &")
@@ -148,6 +145,9 @@ class larp():
 
         elif "kill" in buf:
             sys.exit(-1)
+
+        elif "ifconfig" in buf:
+            os.system("ifconfig")
 
         elif buf.isdigit():
             if len(self.thread_array) > int(buf):
