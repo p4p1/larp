@@ -46,6 +46,7 @@ def man():
     print colored("What is the interface i wish to use?", "magenta")
     print "It depends,but this tool is built for wireless network, so"
     print "I recomend using either a wlanX or wlpXXsX. replace the X by a digit."
+    print "It should be writen up there next to the default gateway"
     print colored("What is an ip list?", "magenta")
     print "Thats the list of IP's you want to ARP. Create a file with an IP"
     print "on each line, you can generate it using fping -g -a if you wish."
