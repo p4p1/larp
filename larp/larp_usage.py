@@ -5,7 +5,7 @@ def usage():
     print "\t%s -h    => show this message" % sys.argv[0]
     print "\t%s -c    => Configure %s" % (sys.argv[0], sys.argv[0])
     print "\t%s -s    => Silent mode" % (sys.argv[0])
-    print "\t%s -man  => Man page" % sys,argv[0]
+    print "\t%s -man  => Man page" % sys.argv[0]
     print
 
 def man():
