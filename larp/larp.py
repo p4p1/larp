@@ -14,6 +14,7 @@ import subprocess
 
 import arp
 import command
+import larp.larp_usage as usage
 
 from scapy.all import *
 from termcolor import colored
@@ -127,6 +128,9 @@ class larp():
 
         elif "ifconfig" in buf:
             command.exe_ifconfig()
+
+        elif "man" in buf:
+            usage.man()
 
         elif buf.isdigit():
             if len(self.thread_array) > int(buf):

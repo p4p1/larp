@@ -40,6 +40,8 @@ def man():
     print colored("\t-> [id]", "magenta")
     print "\t\tIf you enter and ID that is found in the list command, it will"
     print "\t\tstop the ARP spoof on that client"
+    print colored("\t-> man", "magenta")
+    print "\t\tShow this message..."
     print colored("Where to find the config info?", "green")
     print colored("What is my gateway ip?", "magenta")
     print "It's the default route here:"
