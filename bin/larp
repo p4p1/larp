@@ -26,12 +26,18 @@ if arg == "-cfg" or arg == "-c":
     config.configure(verbose).gen_config_wiz()
 if arg == "-s" or arg == "--silent":
     silent = True
+if arg == "-man" or arg == "-h":
+    if arg == "-man":
+        usage.man()
+    else:
+        usage.usage()
+    sys.exit(0)
 
 #-----------------------------------------
 
 if os.geteuid() != 0:
     print >> sys.stderr, colored("[!] RUN THE PROGRAM AS ROOT!", "red")
-    larp.usage()
+    usage.usage()
     sys.exit(-1)
 
 #-----------------------------------------
