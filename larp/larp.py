@@ -13,6 +13,7 @@ import multiprocessing
 import subprocess
 
 import arp
+import command
 
 from scapy.all import *
 from termcolor import colored
@@ -89,10 +90,8 @@ class larp():
     def process_cmd(self, t_id, buf):
         if "all" in buf or "a" == buf:
             for i in xrange(0, t_id):
-                self.thread_array[i].terminate()
-                arp.restore_target(self.g_ip, self.g_mac, self.id_map[i][0], self.id_map[i][1])
-                print colored("[^] Restored: %s" % self.id_map[i][0], "blue")
-                del self.id_map[i]
+                command.kill_instance(i, self.thread_array, self.g_ip, self.g_mac,\
+                        self.id_map)
             self.kill = True
 
         elif "list" in buf or "l" == buf:
@@ -112,42 +111,22 @@ class larp():
                 os.system("%s" % buf)
 
         elif "wireshark" in buf or "w" == buf.split(' ')[0]:
-            os.system("wireshark &")
+            command.exe_wireshark()
 
         elif "add" in buf:
             ipaddr = buf[buf.find(" ")+1:]
-            macaddr = arp.get_mac(ipaddr)
-            if ipaddr == self.g_ip:
-                print colored("[!!] Ip is gateway skipping...", "red")
-            elif macaddr == None:
-                print colored("[!!] Mac addr is None skipping...", "red")
-            else:
-                self.t_ip.append(ipaddr)
-                self.t_mac[ipaddr] = macaddr               # retrieving mac addrs
-                if not self.silent:
-                    self.thread_array.append(multiprocessing.Process(target=arp.poison,\
-                            args=(self.g_ip,self.g_mac, ipaddr, macaddr, self.cfg['RATE'])))
-                    self.thread_array[len(self.thread_array)-1].start()
-                    self.id_map[len(self.thread_array)-1] =\
-                            [ipaddr, macaddr, None, None]
-                print colored("[^] Added the ip %s => %s" % (ipaddr, macaddr),\
-                        "blue")
+            command.add_ip(ipaddr, self.g_ip, self.t_ip, self.id_map, self.thread_array,\
+                    self.g_mac, self.t_mac, self.cfg, self.silent)
 
         elif "start" in buf and self.silent:
-            t_id = 0
-            for ip in self.t_ip:                    # start the arp on every client
-                self.thread_array.append(multiprocessing.Process(target=arp.poison,\
-                args=(self.g_ip, self.g_mac, ip, self.t_mac[ip], self.cfg['RATE'])))
-                self.thread_array[t_id].start()
-                self.id_map[t_id] = [ip, self.t_mac[ip], None , None]
-                # id_mapper  ip |  mac addr |  if sniffing|if in img harvest
-                t_id += 1
+            command.start_arp(self.t_ip, self.thread_array, self.g_ip, self.g_mac,\
+                    self.t_mac, self.cfg, self.id_map)
 
         elif "kill" in buf:
             sys.exit(-1)
 
         elif "ifconfig" in buf:
-            os.system("ifconfig")
+            command.exe_ifconfig()
 
         elif buf.isdigit():
             if len(self.thread_array) > int(buf):
@@ -172,13 +151,8 @@ class larp():
         print colored("[^] Starting ARP poison", "blue")
 
         if not self.silent:
-            for ip in self.t_ip:                    # start the arp on every client
-                self.thread_array.append(multiprocessing.Process(target=arp.poison,\
-                args=(self.g_ip, self.g_mac, ip, self.t_mac[ip], self.cfg['RATE'])))
-                self.thread_array[t_id].start()
-                self.id_map[t_id] = [ip, self.t_mac[ip], None , None]
-                # id_mapper  ip |  mac addr |  if sniffing|if in img harvest
-                t_id += 1
+            command.start_arp(self.t_ip, self.thread_array, self.g_ip, self.g_mac,\
+                    self.t_mac, self.cfg, self.id_map)
 
         print "id_map -> ",
         print self.id_map
