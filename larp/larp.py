@@ -14,7 +14,7 @@ import subprocess
 
 import arp
 import command
-import larp.larp_usage as usage
+import larp_usage as usage
 
 from scapy.all import *
 from termcolor import colored
