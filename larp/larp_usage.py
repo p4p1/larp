@@ -14,8 +14,10 @@ def man():
     print "\tThis is an arp spoofing tool build for doing a MITM attack on an"
     print "\tentire network. Larp needs to be given a list of IP's that are on"
     print "\tthe current network for him to ARP spoof them."
+    print
     print colored("Usage:", "green")
     usage()
+    print
     print colored("Interactive commands:", "green")
     print colored("\t-> all | a", "magenta")
     print "\t\tDisables ARP spoof on all of the targets and exits larp."
@@ -42,9 +44,10 @@ def man():
     print "\t\tstop the ARP spoof on that client"
     print colored("\t-> man", "magenta")
     print "\t\tShow this message..."
+    print
     print colored("Where to find the config info?", "green")
     print colored("What is my gateway ip?", "magenta")
-    print "It's the default route here:"
+    print "It's the default route here, it wont work if you are not on a network"
     os.system("ip route | grep default")
     print colored("What is the interface i wish to use?", "magenta")
     print "It depends,but this tool is built for wireless network, so"
@@ -56,3 +59,4 @@ def man():
     print colored("What is the rate per seconds of arp packets?", "magenta")
     print "This is just a number to enter of how many packets per second you want"
     print "to send on the network. I recommend 5."
+
