@@ -16,7 +16,7 @@ USAGE:  larp [-f file] [-h | -c | -s | -v | -m]
 ```
 git clone https://github.com/p4p1/larp.git /tmp/larp/
 pip install -U /tmp/larp/
-echo "DONE! installation finished
+echo "DONE! installation finished"
 ```
 
 # Setup
