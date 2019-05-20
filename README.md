@@ -1,6 +1,16 @@
 # larp
 The :lemon:arp software, used to do an arp poisonning attack!
 Dude if you are not allowed to do arp poisonning don't use this... please
+```
+USAGE:  larp [-f file] [-h | -c | -s | -v | -m]
+
+-h | --help     => show this message
+-c | --cfg      => Configure %s
+-s | --silent   => Silent mode
+-v | --verbose  => Verbose mode
+-m | --man      => man page
+-f | --file     => provides the configuration file path
+```
 
 # Setup
 Put a file in your' /tmp directory called t_ip.txt [Standing for target ip].
