@@ -3,21 +3,26 @@ from time import gmtime, strftime
 from termcolor import colored
 
 class configure():
-    """ class to configure larp """
+    """ configuration class for larp """
+
     def __init__(self, verbose, cfg_path=None):
         self.v = verbose
         if cfg_path == None:
-            self.cfg_path = os.environ['HOME']+"/.config/larp/config"
+            self.cfg_path = os.environ['HOME'] + "/.config/larp/config"
         else:
             self.cfg_path = cfg_path
+        if self.v:
+            print "Using path for config: %s" % self.cfg_path
         self.cfg = dict()
         if not os.path.exists(self.cfg_path):
             self.error("configuration, does not exists")
 
     def error(self, msg="", level=0):
-        print colored("[!!] "+msg, "red")
+        print colored("[!!] " + msg, "red")
 
     def data_isok(self):
+        if self.v:
+            print "Checking integrity of configuration file"
         try:
             if self.cfg['GATEWAY'] and self.cfg['INTERFACE'] and\
                     self.cfg['IP_PATH']:
@@ -29,6 +34,8 @@ class configure():
     def configure(self):
         if not os.path.exists(self.cfg_path):
             return None
+        if self.v:
+            print "Configuring larp"
         with open(self.cfg_path, "r") as fp:
             for line in fp:
                 if "#" in line:
@@ -58,6 +65,8 @@ class configure():
         self.gen_config(gateway, interface, ip_path, rate)
 
     def gen_config(self, gateway, interface, ip_path, rate):
+        if self.v:
+            print "Generating config file"
         if not os.path.exists(os.environ['HOME']+"/.config/larp"):
             os.makedirs(os.environ['HOME']+"/.config/larp")
         with open(os.environ['HOME']+"/.config/larp/config", "w") as fp:

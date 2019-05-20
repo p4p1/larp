@@ -13,6 +13,13 @@ as second argument after that just let it run.
 2. graphical view for .jpg files
 3. TLS / SSL implementation
 
+# Dependancies
+## python packages
+termcolor
+arp
+scapy
+netifaces
+
 # License
 GNU GENERAL PUBLIC LICENSE
 Version 2, June 1991

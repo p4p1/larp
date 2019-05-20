@@ -2,11 +2,14 @@ import sys, os
 from termcolor import colored
 
 def usage():
-    print "\t%s -h    => show this message" % sys.argv[0]
-    print "\t%s -c    => Configure %s" % (sys.argv[0], sys.argv[0])
-    print "\t%s -s    => Silent mode" % (sys.argv[0])
-    print "\t%s -man  => Man page" % sys.argv[0]
+    print "larp [-f file] [-h | -c | -s | -v | -m]"
     print
+    print "-h | --help     => show this message"
+    print "-c | --cfg      => Configure %s"
+    print "-s | --silent   => Silent mode"
+    print "-v | --verbose  => Verbose mode"
+    print "-m | --man      => man page"
+    print "-f | --file     => provides the configuration file path"
 
 def man():
     print colored("Presentation:", "green")
@@ -59,4 +62,10 @@ def man():
     print colored("What is the rate per seconds of arp packets?", "magenta")
     print "This is just a number to enter of how many packets per second you want"
     print "to send on the network. I recommend 5."
+    print colored("How is the config formated?", "green")
+    print "The config of larp is formated in a verry simple way"
+    print "it first has the variable then it's value as such:"
+    print "\t{VARIABLE}={VALUE}"
+    print "you can find your config in your home directory under"
+    print ".config/larp/config"
 

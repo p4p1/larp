@@ -1,5 +1,5 @@
 #!/usr/bin/env python2.7
-import os, sys
+import os, sys, getopt
 
 import larp
 import larp.larp_config as config
@@ -7,43 +7,42 @@ import larp.larp_usage as usage
 
 from termcolor import colored
 
+cfg_file = None
 cfg_data = None
 silent = False
 verbose = False
-arg = None
 
 try:
-    arg = sys.argv[1]
-    if arg == "-v":
-        verbose = True
-        arg = sys.argv[2]
-except:
-    pass
-
-#-----------------------------------------
-
-if arg == "-cfg" or arg == "-c":
-    config.configure(verbose).gen_config_wiz()
-if arg == "-s" or arg == "--silent":
-    silent = True
-if arg == "-man" or arg == "-h":
-    if arg == "-man":
-        usage.man()
-    else:
-        usage.usage()
-    sys.exit(0)
-
-#-----------------------------------------
-
-if os.geteuid() != 0:
-    print >> sys.stderr, colored("[!] RUN THE PROGRAM AS ROOT!", "red")
+    opts, args = getopt.getopt(sys.argv[1:], "vhcmsf:", ["verbose", "help", "cfg", "man", "silent", "file="])
+except getopt.GetoptError as err:
+    print str(err)
+    print "USAGE: ",
     usage.usage()
     sys.exit(-1)
+
+for o, a in opts:
+    if o in ("-v", "--verbose"):
+        verbose = True
+    elif o in ("-h", "--help"):
+        print "USAGE: ",
+        usage.usage()
+        sys.exit(0)
+    elif o in ("-c", "--cfg"):
+        config.configure(verbose, cfg_file).gen_config_wiz()
+    elif o in ("-m", "--man"):
+        usage.man()
+        sys.exit(0)
+    elif o in ("-s", "--silent"):
+        silent = True
+    elif o in ("-f", "--file"):
+        cfg_file = a
+    else:
+        assert False, "unhandled option"
 
 #-----------------------------------------
 
 while cfg_data == None:
-    cfg_data = config.configure(verbose).configure()
+    cfg_data = config.configure(verbose, cfg_file).configure()
     if cfg_data == None:
         print colored("[!] CFG File Missing do you wish to generate one?", 'red')
         a = raw_input('[Y/n]')
@@ -57,5 +56,13 @@ if verbose:
     print cfg_data
 
 #----------------------------------------
+
+if os.geteuid() != 0:
+    print >> sys.stderr, colored("[!] RUN THE PROGRAM AS ROOT!", "red")
+    print "USAGE: ",
+    usage.usage()
+    sys.exit(-1)
+
+#-----------------------------------------
 
 larp.larp(cfg=cfg_data, silent=silent).main()
