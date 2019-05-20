@@ -12,6 +12,13 @@ USAGE:  larp [-f file] [-h | -c | -s | -v | -m]
 -f | --file     => provides the configuration file path
 ```
 
+# Installation
+```
+git clone https://github.com/p4p1/larp.git /tmp/larp/
+pip install -U /tmp/larp/
+echo "DONE! installation finished
+```
+
 # Setup
 Put a file in your' /tmp directory called t_ip.txt [Standing for target ip].
 In it put all of the ip's you want to spoof. Then run the script as root and

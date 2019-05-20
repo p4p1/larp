@@ -12,6 +12,6 @@ setup( name='larp',
         author='p4p1',
         author_email='k0oo@icloud.com',
         license='None',
-        packages=['larp'],
+        packages=['larp', 'larp.config'],
         scripts=['bin/larp'],
         zip_safe=False)

@@ -2,8 +2,8 @@
 import os, sys, getopt
 
 import larp
-import larp.larp_config as config
-import larp.larp_usage as usage
+import larp.config.configuration as config
+import larp.config.usage_man as usage
 
 from termcolor import colored
 
