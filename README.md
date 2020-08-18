@@ -1,6 +1,7 @@
 # larp
 The :lemon:arp software, used to do an arp poisonning attack!
 Dude if you are not allowed to do arp poisonning don't use this... please
+This software is dependent on *Python 2.7* and uses the dependancies listed bellow.
 ```
 USAGE:  larp [-f file] [-h | -c | -s | -v | -m]
 
@@ -18,6 +19,10 @@ git clone https://github.com/p4p1/larp.git /tmp/larp/
 pip install -U /tmp/larp/
 echo "DONE! installation finished"
 ```
+# Dependancies
+```
+pip2 install -U termcolor arp scapy netifaces
+```
 
 # Setup
 Put a file in your' /tmp directory called t_ip.txt [Standing for target ip].
@@ -30,12 +35,6 @@ as second argument after that just let it run.
 2. graphical view for .jpg files
 3. TLS / SSL implementation
 
-# Dependancies
-## python packages
-termcolor
-arp
-scapy
-netifaces
 
 # License
 GNU GENERAL PUBLIC LICENSE
