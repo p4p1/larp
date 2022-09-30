@@ -10,8 +10,14 @@ setup( name='larp',
         description='leo arp spoofer',
         url='http://github.com/p4p1/larp',
         author='p4p1',
-        author_email='k0oo@icloud.com',
+        author_email='p4p1@leosmith.xyz',
         license='None',
         packages=['larp', 'larp.config'],
+        intall_requires=[
+            'termcolor',
+            'scapy',
+            'netifaces',
+            'arp'
+        ],
         scripts=['bin/larp'],
         zip_safe=False)
