@@ -2,7 +2,7 @@ LARP
 ====
 *MITM python tool*
 
-![larp](https://raw.githubusercontent.com/p4p1/larp/master/assets/screenshot.png)
+![larp](https://raw.githubusercontent.com/p4p1/larp/master/assets/icon.png)
 
 The :lemon:arp software, used to do an arp poisonning attack!
 Dude if you are not allowed to do arp poisonning don't use this... please
@@ -34,6 +34,9 @@ Put a file in your' /tmp directory called t_ip.txt [Standing for target ip].
 In it put all of the ip's you want to spoof. Then run the script as root and
 with first argument the ip of your' gateway and the interface you are using
 as second argument after that just let it run.
+
+# Screenshot
+![larp](https://raw.githubusercontent.com/p4p1/larp/master/assets/screenshot.png)
 
 # TODO:
 1. On the fly http / tcp / packet analysis
